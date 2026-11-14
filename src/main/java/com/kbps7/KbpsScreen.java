@@ -6,8 +6,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.option.GraphicsMode;
-import net.minecraft.client.option.ParticlesMode;
+import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -71,34 +70,38 @@ public class KbpsScreen extends Screen {
                             : m == CloudRenderMode.FAST ? CloudRenderMode.FANCY : CloudRenderMode.OFF);
                 }));
         addDrawableChild(cycle(x + colW + 8, y, colW, "Particles", () -> o.getParticles().getValue().name(),
-                () -> {
-                    ParticlesMode m = o.getParticles().getValue();
-                    o.getParticles().setValue(m == ParticlesMode.ALL ? ParticlesMode.DECREASED
-                            : m == ParticlesMode.DECREASED ? ParticlesMode.MINIMAL : ParticlesMode.ALL);
-                }));
+                () -> cycleEnum(o.getParticles())));
         y += rowH;
-        addDrawableChild(cycle(x, y, colW, "Graphics", () -> o.getGraphicsMode().getValue().name(),
-                () -> {
-                    GraphicsMode m = o.getGraphicsMode().getValue();
-                    o.getGraphicsMode().setValue(m == GraphicsMode.FAST ? GraphicsMode.FANCY : GraphicsMode.FAST);
-                }));
-        addDrawableChild(cycle(x + colW + 8, y, colW, "VSync", () -> onOff(o.getEnableVsync().getValue()),
+        addDrawableChild(cycle(x, y, colW, "VSync", () -> onOff(o.getEnableVsync().getValue()),
                 () -> o.getEnableVsync().setValue(!o.getEnableVsync().getValue())));
-        y += rowH;
-        addDrawableChild(cycle(x, y, colW, "Entity Shadows", () -> onOff(o.getEntityShadows().getValue()),
+        addDrawableChild(cycle(x + colW + 8, y, colW, "Entity Shadows", () -> onOff(o.getEntityShadows().getValue()),
                 () -> o.getEntityShadows().setValue(!o.getEntityShadows().getValue())));
-        addDrawableChild(cycle(x + colW + 8, y, colW, "Smooth Lighting", () -> onOff(o.getAo().getValue()),
-                () -> o.getAo().setValue(!o.getAo().getValue())));
         y += rowH;
-        addDrawableChild(cycle(x, y, colW, "View Bobbing", () -> onOff(o.getViewBobbing().getValue()),
-                () -> o.getViewBobbing().setValue(!o.getViewBobbing().getValue())));
+        addDrawableChild(cycle(x, y, colW, "Smooth Lighting", () -> onOff(o.getAo().getValue()),
+                () -> o.getAo().setValue(!o.getAo().getValue())));
+        addDrawableChild(cycle(x + colW + 8, y, colW, "View Bobbing", () -> onOff(o.getBobView().getValue()),
+                () -> o.getBobView().setValue(!o.getBobView().getValue())));
+        y += rowH + 4;
 
         addDrawableChild(ButtonWidget.builder(Text.literal("Done"), b -> close())
-                .dimensions(x + colW + 8, y, colW, 20).build());
+                .dimensions(x, y, fullW, 20).build());
     }
 
     private static String onOff(boolean v) {
         return v ? "ON" : "OFF";
+    }
+
+    /** Moves an enum-valued option to its next value, wrapping around. */
+    private static <E extends Enum<E>> void cycleEnum(SimpleOption<E> opt) {
+        E cur = opt.getValue();
+        E[] all = cur.getDeclaringClass().getEnumConstants();
+        opt.setValue(all[(cur.ordinal() + 1) % all.length]);
+    }
+
+    /** Sets an enum-valued option by position (0 = first value). */
+    private static <E extends Enum<E>> void setEnum(SimpleOption<E> opt, int ordinal) {
+        E[] all = opt.getValue().getDeclaringClass().getEnumConstants();
+        opt.setValue(all[Math.min(ordinal, all.length - 1)]);
     }
 
     /** A button that shows "Label: VALUE" and runs an action on click. */
@@ -121,10 +124,9 @@ public class KbpsScreen extends Screen {
                 o.getMaxFps().setValue(260);
                 o.getEnableVsync().setValue(false);
                 o.getCloudRenderMode().setValue(CloudRenderMode.OFF);
-                o.getParticles().setValue(ParticlesMode.MINIMAL);
+                setEnum(o.getParticles(), 2);   // minimal
                 o.getEntityShadows().setValue(false);
                 o.getBiomeBlendRadius().setValue(0);
-                o.getGraphicsMode().setValue(GraphicsMode.FAST);
                 o.getAo().setValue(false);
             }
             case BALANCED -> {
@@ -133,10 +135,9 @@ public class KbpsScreen extends Screen {
                 o.getMaxFps().setValue(144);
                 o.getEnableVsync().setValue(false);
                 o.getCloudRenderMode().setValue(CloudRenderMode.FAST);
-                o.getParticles().setValue(ParticlesMode.DECREASED);
+                setEnum(o.getParticles(), 1);   // decreased
                 o.getEntityShadows().setValue(false);
                 o.getBiomeBlendRadius().setValue(2);
-                o.getGraphicsMode().setValue(GraphicsMode.FAST);
                 o.getAo().setValue(true);
             }
             case QUALITY -> {
@@ -145,10 +146,9 @@ public class KbpsScreen extends Screen {
                 o.getMaxFps().setValue(144);
                 o.getEnableVsync().setValue(true);
                 o.getCloudRenderMode().setValue(CloudRenderMode.FANCY);
-                o.getParticles().setValue(ParticlesMode.ALL);
+                setEnum(o.getParticles(), 0);   // all
                 o.getEntityShadows().setValue(true);
                 o.getBiomeBlendRadius().setValue(5);
-                o.getGraphicsMode().setValue(GraphicsMode.FANCY);
                 o.getAo().setValue(true);
             }
         }
