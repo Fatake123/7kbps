@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "kbps7",
+  "version": "${version}",
+  "name": "7KBPS",
+  "description": "A clean in-game performance panel with one-click FPS presets. Built to run alongside Sodium.",
+  "authors": ["Saurav"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.kbps7.KbpsClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*",
+    "sodium": "*"
+  }
+}
